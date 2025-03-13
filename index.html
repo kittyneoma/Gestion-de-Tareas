@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion de Tareas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f664bf;
+        }
+        .contenedor {
+            background-color: #f9d2ea;
+            padding: 30px;
+            border-radius: 8px;
+        }
+        .seccion-inicio-sesion, 
+        .seccion-usuario, 
+        .registro-tarea, 
+        .lista-tareas,
+        .seccion-edicion-tarea,
+        .seccion-filtro {
+            margin-bottom: 20px;
+            border: 2px solid #dc6ea8;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        input, select, textarea {
+            width: 97%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #5c063b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #9e1168;
+            color: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #ddd;
+        }
+        table, th, td {
+            border: 1px solid #5c063b;
+        }
+        table tbody {
+            background-color: white; 
+        }
+        table thead {
+            background-color: #dc6ea8;
+            color: #fbfafb;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .oculto {
+            display: none;
+        }
+        .error {
+            color: red;
+            margin-bottom: 10px;
+        }
+        .contenedor-fecha {
+            display: flex; 
+            gap: 10px;
+        }
+        .contenedor-fecha select {
+            flex: 1;
+        }
+        tr.seleccionable {
+            cursor: pointer;
+        }
+        tr.seleccionable:hover {
+            background-color: #aa0c78;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <!-- seccion para iniciar sesion -->
+        <div id="seccionInicioSesion" class="seccion-inicio-sesion">
+            <h2>Iniciar Sesion</h2>
+            <div id="errorInicio" class="error"></div>
+            <form id="formularioInicio">
+                <input required type="text" id="nombreUsuario" placeholder="Usuario">
+                <input required type="password" id="contrasena" placeholder="Contraseña">
+                <button type="submit">Iniciar Sesion</button>
+            </form>
+        </div>
+
+        <!-- mostrar usuario -->
+        <div id="seccionUsuario" class="seccion-usuario oculto">
+            <h2>Perfil de Usuario</h2>
+            <input readonly type="text" id="nombreUsuarioMostrar">
+        </div>
+
+        <!-- registro de tareas -->
+        <div id="seccionRegistroTarea" class="registro-tarea oculto">
+            <h2>Registro de Nueva Tarea</h2>
+            <form id="formularioTarea">
+                <input required type="text" id="idTarea" placeholder="Codigo de tarea (id)">
+                <input required type="text" id="tituloTarea" placeholder="Titulo de la tarea">
+                <textarea id="descripcionTarea" placeholder="Descripcion de la tarea" required></textarea>
+                <div>
+                    <label>Fecha de Entrega:</label>
+                    <div class="contenedor-fecha">
+                        <select id="diaTarea" required>
+                            <option value="">Dia</option>
+                        </select>
+                        <select id="mesTarea" required>
+                            <option value="">Mes</option>
+                            <option value="01">Enero</option>
+                            <option value="02">Febrero</option>
+                            <option value="03">Marzo</option>
+                            <option value="04">Abril</option>
+                            <option value="05">Mayo</option>
+                            <option value="06">Junio</option>
+                            <option value="07">Julio</option>
+                            <option value="08">Agosto</option>
+                            <option value="09">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                        <select id="anioTarea" required>
+                            <option value="">Año</option>
+                        </select>
+                    </div>
+                </div>
+                <input required type="text" id="nombreCliente" placeholder="Nombre del cliente">
+                <input required type="text" id="idProyecto" placeholder="id del Proyecto">
+                <textarea id="comentariosTarea" placeholder="Comentarios (opcional)"></textarea>
+                <label>Estatus de la Tarea:</label>
+                <select id="estatusTarea">
+                    <option value="Por hacer">Por hacer</option>
+                    <option value="En progreso">En progreso</option>
+                    <option value="Rechazado">Rechazado</option>
+                    <option value="Cancelado">Cancelado</option>
+                    <option value="Cerrado">Cerrado</option>
+                    <option value="En pruebas de calidad">En pruebas de calidad</option>
+                    <option value="En validacion por el usuario">En validacion por el usuario</option>
+                    <option value="En proceso de liberacion">En proceso de liberacion</option>
+                </select>
+                <button type="submit">Registrar tarea</button>
+            </form>
+        </div>
+
+        <!-- filtro de tareas -->
+        <div id="seccionFiltro" class="seccion-filtro oculto">
+            <h2>Filtrar Tareas</h2>
+            <select id="filtroEstatus">
+                <option value="Todos">Todos</option>
+                <option value="Por hacer">Por hacer</option>
+                <option value="En progreso">En progreso</option>
+                <option value="Rechazado">Rechazado</option>
+                <option value="Cancelado">Cancelado</option>
+                <option value="Cerrado">Cerrado</option>
+                <option value="En pruebas de calidad">En pruebas de calidad</option>
+                <option value="En validacion por el usuario">En validacion por el usuario</option>
+                <option value="En proceso de liberacion">En proceso de liberacion</option>
+            </select>
+            <p>Haz doble clic en una tarea para editarla.</p>
+        </div>
+
+        <!-- lista de tareas -->
+        <div id="seccionListaTareas" class="lista-tareas oculto">
+            <h2>Tareas Registradas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Codigo</th>
+                        <th>Titulo</th>
+                        <th>Descripcion</th>
+                        <th>Fecha de Entrega</th>
+                        <th>Cliente</th>
+                        <th>Proyecto</th>
+                        <th>Comentarios</th>
+                        <th>Estatus</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTablaTareas">
+                    <!-- aqui se agregan las tareas de la lista en una tabla -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- edicion de tareas -->
+        <div id="seccionEdicionTarea" class="seccion-edicion-tarea oculto">
+            <h2>Modificar Tarea</h2>
+            <form id="formularioEdicionTarea">
+                <input readonly type="text" id="idTareaEdit" placeholder="Codigo de tarea (id)">
+                <input readonly type="text" id="tituloTareaEdit" placeholder="Titulo de la tarea">
+                <textarea readonly id="descripcionTareaEdit" placeholder="Descripcion de la tarea"></textarea>
+                <input readonly type="text" id="fechaEntregaEdit" placeholder="Fecha de entrega">
+                <input readonly type="text" id="nombreClienteEdit" placeholder="Nombre del cliente">
+                <input readonly type="text" id="idProyectoEdit" placeholder="id del Proyecto">
+                <textarea readonly id="comentariosTareaEdit" placeholder="Comentarios anteriores"></textarea>
+                <textarea id="nuevoComentario" placeholder="Agregar nuevo comentario"></textarea>
+                <label>Estatus de la Tarea:</label>
+                <select id="estatusTareaEdit">
+                    <option value="Por hacer">Por hacer</option>
+                    <option value="En progreso">En progreso</option>
+                    <option value="Rechazado">Rechazado</option>
+                    <option value="Cancelado">Cancelado</option>
+                    <option value="Cerrado">Cerrado</option>
+                    <option value="En pruebas de calidad">En pruebas de calidad</option>
+                    <option value="En validación por el usuario">En validacion por el usuario</option>
+                    <option value="En proceso de liberación">En proceso de liberacion</option>
+                </select>
+                <div>
+                    <button type="submit">Actualizar Tarea</button>
+                    <button type="button" id="btnCancelarEdicion">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // se ingresan los select de día y año
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const selectDia = document.getElementById('diaTarea');
+                for (let i = 1; i <= 31; i++) {
+                    const option = document.createElement('option');
+                    option.value = i.toString().padStart(2, '0');
+                    option.textContent = i;
+                    selectDia.appendChild(option);
+                }
+
+                const selectAnio = document.getElementById('anioTarea');
+                const currentYear = new Date().getFullYear();
+                for (let i = currentYear; i <= currentYear + 5; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = i;
+                    selectAnio.appendChild(option);
+                }
+
+                // manejadores de eventos
+                inicializarEventos();
+            } catch (error) {
+                console.error("Error en la inicializacion:", error);
+                alert("Ha ocurrido un error al cargar la pagina. Por favor, intentelo de nuevo.");
+            }
+        });
+
+        // los datos de usuario que pueden iniciar sesion
+        const usuariosValidos = [
+            { username: 'admin', password: 'admin123', name: 'Administrador' },
+            { username: 'usuario', password: 'usuario123', name: 'Usuario' }
+        ];
+
+        // un array para almacenar tareas
+        let tareas = [];
+        let tareaSeleccionada = null;
+
+        function inicializarEventos() {
+            try {
+                const seccionInicioSesion = document.getElementById('seccionInicioSesion');
+                const seccionUsuario = document.getElementById('seccionUsuario');
+                const seccionRegistroTarea = document.getElementById('seccionRegistroTarea');
+                const seccionListaTareas = document.getElementById('seccionListaTareas');
+                const seccionEdicionTarea = document.getElementById('seccionEdicionTarea');
+                const seccionFiltro = document.getElementById('seccionFiltro');
+                const formularioInicio = document.getElementById('formularioInicio');
+                const formularioTarea = document.getElementById('formularioTarea');
+                const formularioEdicionTarea = document.getElementById('formularioEdicionTarea');
+                const errorInicio = document.getElementById('errorInicio');
+                const nombreUsuarioMostrar = document.getElementById('nombreUsuarioMostrar');
+                const filtroEstatus = document.getElementById('filtroEstatus');
+                const btnCancelarEdicion = document.getElementById('btnCancelarEdicion');
+
+                formularioInicio.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    try {
+                        const nombreUsuario = document.getElementById('nombreUsuario').value;
+                        const contrasena = document.getElementById('contrasena').value;
+                        const usuario = usuariosValidos.find(u => u.username === nombreUsuario && u.password === contrasena);
+
+                        // manejo de inicio de sesion
+                        if (usuario) {
+                            errorInicio.textContent = '';
+                            seccionInicioSesion.classList.add('oculto');
+                            seccionUsuario.classList.remove('oculto');
+                            seccionRegistroTarea.classList.remove('oculto');
+                            seccionFiltro.classList.remove('oculto');
+                            seccionListaTareas.classList.remove('oculto');
+                            nombreUsuarioMostrar.value = usuario.name;
+                        } else {
+                            errorInicio.textContent = 'Su usuario y/o contraseña son incorrectos. Intente de nuevo.';
+                        }
+                    } catch (error) {
+                        console.error("Error en inicio de sesion:", error);
+                        errorInicio.textContent = 'Ha ocurrido un error al iniciar sesion.';
+                    }
+                });
+
+                //registro de tarea
+                formularioTarea.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    try {
+                        const dia = document.getElementById('diaTarea').value;
+                        const mes = document.getElementById('mesTarea').value;
+                        const anio = document.getElementById('anioTarea').value;
+
+                        const tarea = {
+                            id: document.getElementById('idTarea').value,
+                            title: document.getElementById('tituloTarea').value,
+                            description: document.getElementById('descripcionTarea').value,
+                            startDate: `${dia}/${mes}/${anio}`,
+                            clientName: document.getElementById('nombreCliente').value,
+                            projectId: document.getElementById('idProyecto').value,
+                            comments: document.getElementById('comentariosTarea').value,
+                            status: document.getElementById('estatusTarea').value
+                        };
+
+                        if (validarIdExistente(tarea)) {
+                            tareas.push(tarea);
+                            actualizarTablaTareas();
+                            limpiarFormularioTarea();
+                            alert("Tarea registrada correctamente");
+                        }
+                    } catch (error) {
+                        console.error("Error al registrar tarea:", error);
+                        alert("Ha ocurrido un error al registrar la tarea.");
+                    }
+                });
+
+                // evento de filtro
+                filtroEstatus.addEventListener('change', function() {
+                    try {
+                        actualizarTablaTareas();
+                    } catch (error) {
+                        console.error("Error al filtrar tareas:", error);
+                        alert("Ha ocurrido un error al filtrar las tareas.");
+                    }
+                });
+
+                // evento de actualizacion de tarea
+                formularioEdicionTarea.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    try {
+                        const indice = tareas.findIndex(t => t.id === tareaSeleccionada.id);
+                        if (indice !== -1) {
+                            let comentariosActualizados = tareas[indice].comments;
+                            const nuevoComentario = document.getElementById('nuevoComentario').value.trim();
+                            
+                            if (nuevoComentario) {
+                                const fechaActual = new Date();
+                                const fechaFormateada = `${fechaActual.toLocaleDateString()} ${fechaActual.toLocaleTimeString()}`;
+                                comentariosActualizados = `${comentariosActualizados}\n[${fechaFormateada}]: ${nuevoComentario}`;
+                            }
+
+                            tareas[indice].status = document.getElementById('estatusTareaEdit').value;
+                            tareas[indice].comments = comentariosActualizados;
+
+                            actualizarTablaTareas();
+                            seccionEdicionTarea.classList.add('oculto');
+                            alert("Tarea actualizada correctamente");
+                        }
+                    } catch (error) {
+                        console.error("Error al actualizar tarea:", error);
+                        alert("Ha ocurrido un error al actualizar la tarea.");
+                    }
+                });
+
+                // cancelar edicion
+                btnCancelarEdicion.addEventListener('click', function() {
+                    try {
+                        seccionEdicionTarea.classList.add('oculto');
+                        document.getElementById('nuevoComentario').value = '';
+                    } catch (error) {
+                        console.error("Error al cancelar edicion:", error);
+                    }
+                });
+            } catch (error) {
+                console.error("Error en inicializacion de eventos:", error);
+                alert("Ha ocurrido un error al inicializar la aplicacion.");
+            }
+        }
+
+        function validarIdExistente(tarea) {
+            try {
+                if (tareas.some(t => t.id === tarea.id)) {
+                    alert('El codigo de la tarea ya existe');
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error("Error en validacion de id:", error);
+                return false;
+            }
+        }
+
+        function actualizarTablaTareas() {
+            try {
+                const cuerpoTablaTareas = document.getElementById('cuerpoTablaTareas');
+                const filtroEstatus = document.getElementById('filtroEstatus').value;
+                
+                cuerpoTablaTareas.innerHTML = '';
+
+                tareas.forEach(tarea => {
+                    if (filtroEstatus === 'Todos' || tarea.status === filtroEstatus) {
+                        const fila = document.createElement('tr');
+                        fila.className = 'seleccionable';
+                        fila.innerHTML = `
+                            <td>${tarea.id}</td>
+                            <td>${tarea.title}</td>
+                            <td>${tarea.description}</td>
+                            <td>${tarea.startDate}</td>
+                            <td>${tarea.clientName}</td>
+                            <td>${tarea.projectId}</td>
+                            <td>${tarea.comments}</td>
+                            <td>${tarea.status}</td>
+                        `;
+                        
+                        // agregar evento de doble clic para editar
+                        fila.addEventListener('dblclick', function() {
+                            editarTarea(tarea);
+                        });
+                        
+                        cuerpoTablaTareas.appendChild(fila);
+                    }
+                });
+            } catch (error) {
+                console.error("Error al actualizar tabla:", error);
+                alert("Ha ocurrido un error al mostrar las tareas.");
+            }
+        }
+
+        function editarTarea(tarea) {
+            try {
+                tareaSeleccionada = tarea;
+                
+                // llenar formulario de edición
+                document.getElementById('idTareaEdit').value = tarea.id;
+                document.getElementById('tituloTareaEdit').value = tarea.title;
+                document.getElementById('descripcionTareaEdit').value = tarea.description;
+                document.getElementById('fechaEntregaEdit').value = tarea.startDate;
+                document.getElementById('nombreClienteEdit').value = tarea.clientName;
+                document.getElementById('idProyectoEdit').value = tarea.projectId;
+                document.getElementById('comentariosTareaEdit').value = tarea.comments;
+                document.getElementById('estatusTareaEdit').value = tarea.status;
+                document.getElementById('nuevoComentario').value = '';
+                
+                // mostrar seccion de edicion
+                document.getElementById('seccionEdicionTarea').classList.remove('oculto');
+            } catch (error) {
+                console.error("Error al editar tarea:", error);
+                alert("Ha ocurrido un error al cargar los datos de la tarea.");
+            }
+        }
+
+        function limpiarFormularioTarea() {
+            try {
+                document.getElementById('idTarea').value = '';
+                document.getElementById('tituloTarea').value = '';
+                document.getElementById('descripcionTarea').value = '';
+                document.getElementById('diaTarea').value = '';
+                document.getElementById('mesTarea').value = '';
+                document.getElementById('anioTarea').value = '';
+                document.getElementById('nombreCliente').value = '';
+                document.getElementById('idProyecto').value = '';
+                document.getElementById('comentariosTarea').value = '';
+                document.getElementById('estatusTarea').value = 'Por hacer';
+            } catch (error) {
+                console.error("Error al limpiar formulario:", error);
+            }
+        }
+    </script>
+</body>
+</html>
